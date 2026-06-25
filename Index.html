@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AKATSUKI CLAN - WIN/LOSS HISTORY ENGINE</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght=600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #03050d;
+            --card: rgba(14, 16, 26, 0.96);
+            --cyan: #00f2ff;
+            --magenta: #ff0055;
+            --green: #00ff88;
+            --red: #ff2a2a;
+            --gold: #ffcc00;
+        }
+        
+        body {
+            background: var(--bg);
+            color: #ffffff;
+            font-family: 'Rajdhani', sans-serif;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 15px;
+            box-sizing: border-box;
+        }
+
+        .dashboard {
+            width: 100%;
+            max-width: 450px;
+        }
+
+        .ai-frame {
+            background: var(--card);
+            border: 2px solid var(--magenta);
+            border-radius: 14px;
+            padding: 20px;
+            box-shadow: inset 0 0 25px rgba(255, 0, 85, 0.15), 0 0 40px rgba(0, 0, 0, 0.9);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .ai-frame::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--magenta), transparent);
+            animation: scan-line 3.5s linear infinite;
+        }
+
+        @keyframes scan-line {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            font-family: 'Orbitron';
+            font-size: 10px;
+            color: var(--magenta);
+            letter-spacing: 2px;
+            margin-bottom: 12px;
+            font-weight: 700;
+        }
+
+        .system-status {
+            color: var(--green);
+            text-shadow: 0 0 8px var(--green);
+            animation: blink 1.5s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
+        }
+
+        .hero-title {
+            text-align: center;
+            font-family: 'Orbitron';
+            font-weight: 900;
+            font-size: 1.6rem;
+            color: #ffffff;
+            letter-spacing: 3px;
+            margin: 5px 0 2px 0;
+            text-shadow: 0 0 15px rgba(255, 0, 85, 0.5);
+        }
+
+        .sub-hero {
+            text-align: center;
+            font-size: 10px;
+            color: #9ca3af;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        .grid-status-panel {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .status-box {
+            background: rgba(0,0,0,0.4);
+            border: 1px solid rgba(255, 0, 85, 0.15);
+            border-radius: 6px;
+            padding: 8px;
+            text-align: center;
+        }
+        .status-label { font-family: 'Orbitron'; font-size: 9px; color: var(--gold); letter-spacing: 1px; }
+        .status-val { font-family: 'Orbitron'; font-size: 12px; color: #fff; display: block; margin-top: 3px; font-weight: bold; }
+
+        .main-display {
+            background: rgba(0, 0, 0, 0.7);
+            border: 1px solid rgba(0, 242, 255, 0.15);
+            border-radius: 10px;
+            padding: 18px;
+            text-align: center;
+            margin-bottom: 15px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.5);
+        }
+
+        .display-label {
+            font-family: 'Orbitron';
+            font-size: 10px;
+            color: var(--cyan);
+            letter-spacing: 2px;
+        }
+
+        #predict-text {
+            font-family: 'Orbitron';
+            font-size: 4rem;
+            font-weight: 900;
+            margin: 8px 0;
+            color: #4b5563;
+            text-shadow: 0 0 30px currentColor;
+        }
+
+        .info-block {
+            background: rgba(255, 0, 85, 0.02);
+            border-left: 2px solid var(--magenta);
+            padding: 12px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            font-size: 11px;
+            line-height: 1.4;
+        }
+
+        .info-title {
+            font-family: 'Orbitron';
+            font-size: 10px;
+            color: var(--magenta);
+            margin-bottom: 4px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 700;
+        }
+
+        .matrix-title {
+            font-family: 'Orbitron';
+            font-size: 10px;
+            color: var(--cyan);
+            letter-spacing: 1.5px;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            font-weight: 700;
+            border-bottom: 1px solid rgba(0, 242, 255, 0.2);
+            padding-bottom: 4px;
+        }
+
+        .bypass-scroll-area {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 6px;
+            max-height: 120px;
+            overflow-y: auto;
+            padding: 8px 12px;
+            margin-bottom: 15px;
+        }
+
+        .bypass-scroll-area::-webkit-scrollbar, .history-scroll-area::-webkit-scrollbar {
+            width: 4px;
+        }
+        .bypass-scroll-area::-webkit-scrollbar-thumb, .history-scroll-area::-webkit-scrollbar-thumb {
+            background: var(--magenta);
+            border-radius: 2px;
+        }
+
+        .bypass-grid-list {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 5px;
+            font-size: 11px;
+        }
+
+        .bypass-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 4px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+        }
+
+        .bypass-name { color: #d1d5db; }
+        .bypass-status { font-family: 'Orbitron'; font-size: 9.5px; font-weight: 700; }
+
+        /* --- PREDICTION HISTORY TABLE STYLES --- */
+        .history-scroll-area {
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(255, 0, 85, 0.15);
+            border-radius: 6px;
+            max-height: 180px;
+            overflow-y: auto;
+            margin-bottom: 5px;
+        }
+
+        .history-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-family: 'Orbitron';
+            font-size: 10px;
+            text-align: center;
+        }
+
+        .history-table th {
+            background: rgba(14, 16, 26, 1);
+            color: var(--gold);
+            padding: 8px 5px;
+            border-bottom: 1px solid rgba(255, 0, 85, 0.2);
+            position: sticky;
+            top: 0;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+
+        .history-table td {
+            padding: 7px 5px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+            color: #ffffff;
+        }
+
+        .status-win {
+            color: var(--green) !important;
+            font-weight: 900;
+            text-shadow: 0 0 8px rgba(0, 255, 136, 0.4);
+        }
+
+        .status-loss {
+            color: var(--red) !important;
+            font-weight: 900;
+            text-shadow: 0 0 8px rgba(255, 42, 42, 0.4);
+        }
+    </style>
+</head>
+<body>
+
+<div class="dashboard">
+    <div class="ai-frame">
+        <div class="header">
+            <span><span class="system-status">●</span> AKATSUKI MATRIX DEPLOYED</span>
+            <span>SYNC: <span id="timer" style="color: var(--cyan);">30s</span></span>
+        </div>
+
+        <h1 class="hero-title">AKATSUKI CLAN TOOL</h1>
+        <div class="sub-hero">✔ NEXT-GEN MULTI-BYPASS ENHANCED ALGORITHM ★</div>
+
+        <div class="grid-status-panel">
+            <div class="status-box">
+                <span class="status-label">🎯 TARGET PERIOD</span>
+                <span class="status-val" id="p-num">CONNECTING...</span>
+            </div>
+            <div class="status-box">
+                <span class="status-label">⚙️ ACTIVE BYPASS NODE</span>
+                <span class="status-val" id="active-bypass" style="color: var(--cyan);">INITIALIZING</span>
+            </div>
+        </div>
+
+        <div class="main-display">
+            <div class="display-label">MATRIX INTEGRATED ENGINE SIGNAL</div>
+            <div id="predict-text">WAIT</div>
+            <div style="font-size: 9px; color: var(--gold); letter-spacing: 1px; font-weight: bold; font-family: 'Orbitron'; margin-top: 5px;">PRO SIGNAL SYSTEM • MULTI-THREAD VERIFICATION</div>
+        </div>
+
+        <div class="info-block">
+            <div class="info-title">INTELLIGENT TELEMETRY NET</div>
+            20 Multi-Layer Bypass Pipeline <span style="color: var(--green); float: right;">[LOADED]</span><br>
+            Dynamic Telemetry Engine Shift <span style="color: var(--cyan); float: right;">[RUNNING]</span>
+        </div>
+
+        <div class="matrix-title">🧬 20 CORE BYPASS INTEGRATION</div>
+        <div class="bypass-scroll-area">
+            <div class="bypass-grid-list" id="bypass-container"></div>
+        </div>
+
+        <div class="matrix-title">📜 LIVE PREDICTION HISTORY LOG</div>
+        <div class="history-scroll-area">
+            <table class="history-table">
+                <thead>
+                    <tr>
+                        <th>PERIOD</th>
+                        <th>PREDICTION</th>
+                        <th>ACTUAL NO</th>
+                        <th>RESULT</th>
+                    </tr>
+                </thead>
+                <tbody id="history-rows">
+                    <tr>
+                        <td colspan="4" style="color: #4b5563; padding: 15px;">Waiting for next period sequence...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    const API = "https://draw.ar-lottery01.com/WinGo/WinGo_30S/GetHistoryIssuePage.json";
+    let lastP = "";
+    let predictionLog = []; // Local log cache database
+
+    const bypassList = [
+        "Trend Reverse", "Opposite Last", "Majority 10", "Digit Sum Even", "3 BIG Breaker",
+        "Random AI", "Period Odd", "Period Even", "Mirror 4", "Flip Last",
+        "Period Sum", "Low Digit BIG", "Time Engine", "Weighted Last3", "4 SMALL Breaker",
+        "4 BIG Breaker", "Digit Mod3", "AI Momentum", "Chaos Engine", "Adaptive Mirror"
+    ];
+
+    function initializeBypassUI() {
+        const container = document.getElementById('bypass-container');
+        container.innerHTML = "";
+        bypassList.forEach((name, index) => {
+            const div = document.createElement('div');
+            div.className = "bypass-item";
+            div.innerHTML = `
+                <span class="bypass-name"><span style="color:var(--magenta); margin-right:5px;">⚡</span> [${String(index+1).padStart(2, '0')}] ${name}</span>
+                <span class="bypass-status" id="bp-${index}" style="color: #4b5563;">STANDBY</span>
+            `;
+            container.appendChild(div);
+        });
+    }
+
+    function renderHistoryTable() {
+        const tbody = document.getElementById('history-rows');
+        if (predictionLog.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="4" style="color: #4b5563;">Waiting for next period sequence...</td></tr>`;
+            return;
+        }
+
+        tbody.innerHTML = "";
+        predictionLog.forEach(log => {
+            const tr = document.createElement('tr');
+            const predColor = (log.pred === "BIG") ? "var(--cyan)" : "var(--green)";
+            
+            // Check status styling rule maps
+            let resultClass = "";
+            if (log.result === "WIN") resultClass = "status-win";
+            if (log.result === "LOSS") resultClass = "status-loss";
+
+            tr.innerHTML = `
+                <td style="color: #ffffff;">${log.period}</td>
+                <td style="color: ${predColor}; font-weight: bold;">${log.pred}</td>
+                <td style="color: var(--gold); font-weight: bold;">${log.actualNum !== undefined ? log.actualNum : "-"}</td>
+                <td class="${resultClass}">${log.result}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    async function updateDashboard() {
+        try {
+            const fetchUrl = `${API}?t=${Date.now()}`;
+            const res = await fetch(fetchUrl);
+            const data = await res.json();
+
+            if (!data || !data.data || !data.data.list || data.data.list.length < 10) {
+                return;
+            }
+
+            const list = data.data.list;
+            const currentLivePeriod = list[0].issueNumber;
+
+            // --- WIN / LOSS RESOLUTION LOGIC FOR THE COMPLETED PERIOD ---
+            if (predictionLog.length > 0) {
+                predictionLog.forEach(log => {
+                    // Find matching tracking index where result is still pending resolution
+                    if (log.period === currentLivePeriod && log.result === "WAITING") {
+                        const actualNumberReceived = parseInt(list[0].number);
+                        const actualOutcome = (actualNumberReceived >= 5) ? "BIG" : "SMALL";
+                        
+                        log.actualNum = actualNumberReceived;
+                        log.result = (log.pred === actualOutcome) ? "WIN" : "LOSS";
+                    }
+                });
+                renderHistoryTable();
+            }
+
+            // --- GENERATING THE NEXT INBOUND PREDICTION LOGIC ---
+            if (currentLivePeriod !== lastP) {
+                lastP = currentLivePeriod;
+                const nextP = (BigInt(lastP) + 1n).toString();
+                
+                document.getElementById('p-num').innerText = nextP;
+
+                const n1 = parseInt(list[0].number);
+                const n2 = parseInt(list[1].number);
+                const n3 = parseInt(list[2].number);
+                const nextPeriodLastDigit = parseInt(nextP.slice(-1));
+
+                const activeIndex = (parseInt(nextP.slice(-3)) % 20);
+                const currentEngineName = bypassList[activeIndex];
+                document.getElementById('active-bypass').innerText = currentEngineName.toUpperCase();
+
+                bypassList.forEach((name, index) => {
+                    const el = document.getElementById(`bp-${index}`);
+                    if (index === activeIndex) {
+                        el.innerText = "OVERRIDE";
+                        el.style.color = "var(--cyan)";
+                    } else {
+                        el.innerText = "STABLE";
+                        el.style.color = "var(--green)";
+                    }
+                });
+
+                let signalOutput = "BIG"; 
+                
+                switch(activeIndex) {
+                    case 0: signalOutput = (n1 >= 5) ? "SMALL" : "BIG"; break;
+                    case 1: signalOutput = ([0,1,2,3,4].includes(n1)) ? "BIG" : "SMALL"; break;
+                    case 2: 
+                        let bigCount = list.slice(0, 10).filter(x => parseInt(x.number) >= 5).length;
+                        signalOutput = (bigCount >= 5) ? "BIG" : "SMALL";
+                        break;
+                    case 3: signalOutput = ((n1 + n2) % 2 === 0) ? "SMALL" : "BIG"; break;
+                    case 4: signalOutput = (list[0].number >= 5 && list[1].number >= 5 && list[2].number >= 5) ? "SMALL" : "BIG"; break;
+                    case 5: signalOutput = (nextPeriodLastDigit % 2 === 0) ? "BIG" : "SMALL"; break;
+                    case 6: signalOutput = (nextPeriodLastDigit % 2 !== 0) ? "SMALL" : "BIG"; break;
+                    case 7: signalOutput = (nextPeriodLastDigit % 2 === 0) ? "SMALL" : "BIG"; break;
+                    case 8: signalOutput = (n1 === 4 || n2 === 4) ? "BIG" : "SMALL"; break;
+                    case 9: signalOutput = (n1 % 2 === 0) ? "BIG" : "SMALL"; break;
+                    case 10: 
+                        let sumP = nextP.slice(-4).split('').reduce((a,b)=>parseInt(a)+parseInt(b), 0);
+                        signalOutput = (sumP % 2 === 0) ? "SMALL" : "BIG";
+                        break;
+                    case 11: signalOutput = (n1 <= 3) ? "BIG" : "SMALL"; break;
+                    case 12: signalOutput = (new Date().getMinutes() % 2 === 0) ? "BIG" : "SMALL"; break;
+                    case 13: 
+                        let weighted = (n1 * 3) + (n2 * 2) + n3;
+                        signalOutput = (weighted % 2 === 0) ? "SMALL" : "BIG";
+                        break;
+                    case 14: 
+                        let smallCombo = list.slice(0,4).every(x => parseInt(x.number) < 5);
+                        signalOutput = smallCombo ? "BIG" : "SMALL";
+                        break;
+                    case 15: 
+                        let bigCombo = list.slice(0,4).every(x => parseInt(x.number) >= 5);
+                        signalOutput = bigCombo ? "SMALL" : "BIG";
+                        break;
+                    case 16: signalOutput = ((n1 + n2) % 3 === 0) ? "BIG" : "SMALL"; break;
+                    case 17: signalOutput = (n1 > n2) ? "BIG" : "SMALL"; break;
+                    case 18: signalOutput = ((n1 + nextPeriodLastDigit) % 2 === 0) ? "SMALL" : "BIG"; break;
+                    case 19: signalOutput = (n1 >= 5) ? "BIG" : "SMALL"; break;
+                    default: signalOutput = "SMALL";
+                }
+
+                const pDisp = document.getElementById('predict-text');
+                pDisp.innerText = signalOutput;
+                pDisp.style.color = (signalOutput === "BIG") ? "var(--cyan)" : "var(--green)";
+
+                // Inbound push track set initially to WAITING state
+                predictionLog.unshift({
+                    period: nextP,
+                    pred: signalOutput,
+                    actualNum: undefined,
+                    result: "WAITING"
+                });
+
+                if (predictionLog.length > 30) {
+                    predictionLog.pop();
+                }
+
+                renderHistoryTable();
+            }
+        } catch (e) {
+            // Error handled quietly
+        }
+    }
+
+    setInterval(() => {
+        const r = 30 - (new Date().getSeconds() % 30);
+        document.getElementById('timer').innerText = r + "s";
+        
+        if (r === 29 || r === 15 || r === 1) {
+            updateDashboard();
+        }
+    }, 1000);
+    
+    initializeBypassUI();
+    updateDashboard();
+</script>
+</body>
+</html>
